@@ -16,7 +16,7 @@ function getVintAt (buffer, cursor) {
     }
     var value = buffer[cursor] & ((1 << (8 - length)) - 1);
     for (var i=1; i < length; i++) {
-        value *= Math.pow(2, 8);
+        value <<= 8;
         value += buffer[cursor + i];
     }
     return {
