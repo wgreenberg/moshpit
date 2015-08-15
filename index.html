@@ -1,0 +1,25 @@
+<html>
+<script src="./js/matroska.js"></script>
+<script src="./js/moshpit.js"></script>
+<script>
+function init () {
+    var video = document.getElementById('video');
+    loadVideo('./data/bunny.webm', function (error, rawBuffer) {
+        if (error) {
+            console.log(error);
+            return;
+        }
+
+        var data = new Uint8Array(rawBuffer);
+        var moshedData = mosh(data);
+        var videoBlob = new Blob([moshedData], {
+            type: 'video/webm',
+        });
+        video.src = window.URL.createObjectURL(videoBlob);
+    });
+}
+</script>
+<body onload="init()">
+<video id="video" autoplay>Nope</video>
+</body>
+</html>
