@@ -39,7 +39,6 @@ function mosh (data) {
     var oldSizeLength = cluster.sizeLength;
     var newSizeLength = getTagAt(finalData, cluster.tagStart).sizeLength;
     removedData += (oldSizeLength - newSizeLength);
-    console.log(oldSizeLength, newSizeLength, removedData);
 
     finalData = segment.updateSize(finalData, segment.size - removedData);
 
