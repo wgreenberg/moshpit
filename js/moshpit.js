@@ -18,14 +18,15 @@ function mosh (data) {
     // do the mosh
     var finalData = data;
     var replacementBlockData;
+    var n = 10;
+    var diff = 9;
     for (var i = (blocks.length - 1); i > 0; i--) {
         var block = blocks[i];
-        // keyframes have the first bit set of their third byte (see
-        // SimpleBlock format)
-        if (block.data[2] & 1) {
-            if (replacementBlockData)
-                finalData = replaceBlock(finalData, replacementBlockData, block);
-        } else {
+        if (replacementBlockData) {
+            finalData = replaceBlock(finalData, replacementBlockData, block);
+            if (i%n === (n-1-diff))
+                replacementBlockData = null;
+        } else if (i%n === (n-1)) {
             replacementBlockData = data.subarray(block.tagStart, block.end);
         }
     }
