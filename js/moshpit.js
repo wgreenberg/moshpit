@@ -18,16 +18,54 @@ function mosh (data) {
     // do the mosh
     var finalData = data;
     var replacementBlockData;
-    var n = 10;
-    var diff = 9;
+    var p2b = []; // map pframe idx to its block idx
+    var pFrames = blocks.filter(function (b, i) { // vp8 keyframes have leading 0
+        if (b.data[0] & 1) {
+            p2b.push(i);
+            return true;
+        }
+    });
+    var pFrames2Mosh = { // map pframe idx to target moshblock
+        403: 330, // a beautiful home
+        539: 360, // a beautiful home 2
+        624: 390, // a beautiful home 3
+        401: 780, // rodents
+        330: 0, // the attack
+        379: 0, // the laugh
+        502: 0, // the march
+        530: 0, // the face
+        549: 0, // the crush
+        625: 0, // the horror
+        671: 0, // the end
+    };
+    var blocks2Mosh = {}; // maps target block idx to its new block data
+    for (var pFrame in pFrames2Mosh) {
+        var blockIdx2Mosh = p2b[pFrame];
+        var block2Mosh = blocks[blockIdx2Mosh];
+        var pFrameData = data.subarray(block2Mosh.tagStart, block2Mosh.end);
+
+        // use target block if specified, else start at the pframe's idx
+        blocks2Mosh[pFrames2Mosh[pFrame] || blockIdx2Mosh] = pFrameData;
+    }
+    var moshRuntime = 30; // how many frames a pframe should be copied for
+
+    var moshTimer = 0;
+    var moshBlock = null;
     for (var i = (blocks.length - 1); i > 0; i--) {
         var block = blocks[i];
-        if (replacementBlockData) {
-            finalData = replaceBlock(finalData, replacementBlockData, block);
-            if (i%n === (n-1-diff))
-                replacementBlockData = null;
-        } else if (i%n === (n-1)) {
-            replacementBlockData = data.subarray(block.tagStart, block.end);
+        var isKeyFrame = !(block.data[0] & 1);
+
+        // look ahead to see if a target block is coming up
+        var lookaheadIdx = i - moshRuntime;
+        if (lookaheadIdx in blocks2Mosh) {
+            moshTimer = moshRuntime;
+            moshBlock = blocks2Mosh[lookaheadIdx];
+        }
+
+        if (moshTimer > 0) {
+            if (isKeyFrame)
+                finalData = replaceBlock(finalData, moshBlock, block);
+            moshTimer--; // we time based on real framecount, not keyframes
         }
     }
     // (it was the monster mosh)
